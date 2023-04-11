@@ -18,7 +18,13 @@ const createItem = (req, res) => {
   const createdAt = Date.now();
   const { name, weather, imageUrl } = req.body;
 
-  ClothingItem.create({ name, weather, imageUrl, owner, createdAt })
+  ClothingItem.create({
+    name,
+    imageUrl,
+    weather,
+    owner,
+    createdAt,
+  })
     .then((item) => {
       res.status(200).send({ data: item });
     })
@@ -36,7 +42,7 @@ const deleteItem = (req, res) => {
     .orFail(() => {
       handleOnFailError();
     })
-    .then(() => res.status(204).send({}))
+    .then(() => res.status(200).send({}))
     .catch((err) => {
       handleError(err, res);
     });

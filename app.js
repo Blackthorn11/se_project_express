@@ -18,6 +18,4 @@ app.use((req, res, next) => {
 
 app.use(routes);
 
-app.listen(PORT, () => {
-  console.log(`App is listening at port ${PORT}`);
-});
+app.listen(PORT);

@@ -11,7 +11,7 @@ const handleOnFailError = () => {
 };
 
 const handleError = (err, res) => {
-  if (err.name === "ValidationError") {
+  if (err.name === "ValidationError" || err.name === "CastError") {
     res
       .status(ERROR_CODES.BadRequest)
       .send({ message: "Bad Request, Invalid input" });
@@ -20,12 +20,11 @@ const handleError = (err, res) => {
   }
   if (err.statusCode === 404) {
     res.status(ERROR_CODES.NotFound).send({ message: "Item not found" });
-
-    return;
+  } else {
+    res
+      .status(ERROR_CODES.DefaultError)
+      .send({ message: "Something went wrong" });
   }
-  res
-    .status(ERROR_CODES.DefaultError)
-    .send({ message: "Something went wrong" });
 };
 
 module.exports = {
