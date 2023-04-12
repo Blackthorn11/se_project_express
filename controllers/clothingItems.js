@@ -5,7 +5,7 @@ const { handleOnFailError, handleError } = require("../utils/errors");
 
 const getItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => res.status(200).send({ items }))
+    .then((data) => res.send({ data }))
     .catch((err) => {
       handleError(err, res);
     });
@@ -42,7 +42,7 @@ const deleteItem = (req, res) => {
     .orFail(() => {
       handleOnFailError();
     })
-    .then(() => res.status(200).send({}))
+    .then((card) => res.status(200).send({ card }))
     .catch((err) => {
       handleError(err, res);
     });

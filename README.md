@@ -1,6 +1,15 @@
-# WTWR (What to Wear?): Back End
-The back-end project is focused on creating a server for the WTWR application. You’ll gain a deeper understanding of how to work with databases, set up security and testing, and deploy web applications on a remote machine. The eventual goal is to create a server with an API and user authorization.
-## Running the Project
-`npm run start` — to launch the server 
+# Project 12
 
-`npm run dev` — to launch the server with the hot reload feature
+## description
+
+In this sprint's project we're building a back-end server for our last What-To-Wear application.
+WTWR's front-end: [Link](https://blackthorn11.github.io/se_project_react)
+
+## technologies and techniques used
+
+We're using mainly Express.js for routing and middleware, MongoDB for the database, Mongoose schemas as a form of a check to accept/reject web requests,
+
+## future plans
+
+1- Adding authorization.
+2- user sign-up & sign-in.
