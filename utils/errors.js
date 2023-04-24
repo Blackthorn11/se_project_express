@@ -1,5 +1,7 @@
 const ERROR_CODES = {
   BadRequest: 400,
+  Unauthorized: 401,
+  Forbidden: 403,
   NotFound: 404,
   DefaultError: 500,
 };
@@ -7,6 +9,12 @@ const ERROR_CODES = {
 const handleOnFailError = () => {
   const error = new Error("Item not found");
   error.statusCode = 404;
+  throw error;
+};
+
+const alreadyExistsErr = () => {
+  const error = new Error("User with this email already exists");
+  error.statusCode = 409;
   throw error;
 };
 
@@ -31,4 +39,5 @@ module.exports = {
   ERROR_CODES,
   handleOnFailError,
   handleError,
+  alreadyExistsErr,
 };

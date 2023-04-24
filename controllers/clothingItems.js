@@ -1,5 +1,9 @@
 const ClothingItem = require("../models/clothingItem");
-const { handleOnFailError, handleError } = require("../utils/errors");
+const {
+  handleOnFailError,
+  handleError,
+  ERROR_CODES,
+} = require("../utils/errors");
 
 // return all clothing items
 
@@ -26,7 +30,7 @@ const createItem = (req, res) => {
     createdAt,
   })
     .then((item) => {
-      res.status(200).send({ data: item });
+      res.send({ data: item });
     })
     .catch((err) => {
       handleError(err, res);
@@ -36,19 +40,18 @@ const createItem = (req, res) => {
 // delete an item by _id
 
 const deleteItem = (req, res) => {
-  const { itemId } = req.params;
-
-  ClothingItem.findByIdAndDelete(itemId)
+  ClothingItem.findById(req.params._id)
     .orFail(() => {
       handleOnFailError();
     })
-    // .then(() => res.status(200).send({}))
     .then((item) => {
-      if (item.owner.equals(req.user._id)) {
-        return item.remove(() => res.send({ clothingItem: item }));
+      if (String(item.owner) !== req.params._id) {
+        return res
+          .status(ERROR_CODES.Forbidden)
+          .send({ message: "You are not authorized to delete this item" });
       }
-      return res.status(403).send({
-        message: "You do not have permission to remove other users' photos",
+      return item.deleteOne().then(() => {
+        res.send({ message: "Item deleted" });
       });
     })
     .catch((err) => {
@@ -67,7 +70,7 @@ const likeItem = (req, res) => {
     .orFail(() => {
       handleOnFailError();
     })
-    .then((item) => res.status(200).send({ data: item }))
+    .then((item) => res.send({ data: item }))
     .catch((err) => {
       handleError(err, res);
     });
@@ -84,7 +87,7 @@ const dislikeItem = (req, res) => {
     .orFail(() => {
       handleOnFailError();
     })
-    .then((item) => res.status(200).send({ data: item }))
+    .then((item) => res.send({ data: item }))
     .catch((err) => {
       handleError(err, res);
     });

@@ -2,12 +2,16 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
-const { handleOnFailError, handleError } = require("../utils/errors");
+const {
+  handleOnFailError,
+  handleError,
+  alreadyExistsErr,
+} = require("../utils/errors");
 
 // return all users
 // const getUsers = (req, res) => {
 //   User.find({})
-//     .then((users) => res.status(200).send(users))
+//     .then((users) => res.send(users))
 //     .catch((err) => {
 //       handleError(err, res);
 //     });
@@ -20,7 +24,7 @@ const { handleOnFailError, handleError } = require("../utils/errors");
 //     .orFail(() => {
 //       handleOnFailError();
 //     })
-//     .then((user) => res.status(200).send(user))
+//     .then((user) => res.send(user))
 //     .catch((err) => {
 //       handleError(err, res);
 //     });
@@ -33,7 +37,7 @@ const getCurrentUser = (req, res) => {
     .orFail(() => {
       handleOnFailError();
     })
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.send(user))
     .catch((err) => {
       handleError(err, res);
     });
@@ -50,7 +54,7 @@ const updateUser = (req, res) => {
       handleOnFailError();
     })
     .then((user) => {
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       handleError(err, res);
@@ -66,9 +70,7 @@ const createUser = (req, res) => {
       return res.status(500).send({ message: "Server error" });
     }
     if (user) {
-      const error = new Error("User with this email already exists");
-      error.statusCode = 409;
-      throw error;
+      alreadyExistsErr();
     }
     return bcrypt.hash(password, 10).then((hash) => {
       User.create({
