@@ -55,17 +55,13 @@ const createUser = (req, res) => {
           avatar,
           email,
           password: hash,
-        })
-          .then((item) =>
-            res.setHeader("Content-Type", "application/json").status(201).send({
-              name: item.name,
-              avatar: item.avatar,
-              email: item.email,
-            })
-          )
-          .catch(() => {
-            handleError(err, res);
-          });
+        }).then((item) =>
+          res.setHeader("Content-Type", "application/json").status(201).send({
+            name: item.name,
+            avatar: item.avatar,
+            email: item.email,
+          })
+        );
       });
     })
     .catch((err) => {
