@@ -42,7 +42,15 @@ const deleteItem = (req, res) => {
     .orFail(() => {
       handleOnFailError();
     })
-    .then((card) => res.status(200).send({ card }))
+    // .then(() => res.status(200).send({}))
+    .then((item) => {
+      if (item.owner.equals(req.user._id)) {
+        return item.remove(() => res.send({ clothingItem: item }));
+      }
+      return res.status(403).send({
+        message: "You do not have permission to remove other users' photos",
+      });
+    })
     .catch((err) => {
       handleError(err, res);
     });
