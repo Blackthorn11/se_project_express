@@ -8,30 +8,8 @@ const {
   alreadyExistsErr,
 } = require("../utils/errors");
 
-// return all users
-// const getUsers = (req, res) => {
-//   User.find({})
-//     .then((users) => res.send(users))
-//     .catch((err) => {
-//       handleError(err, res);
-//     });
-// };
-
-// return a user by _id
-// const getUser = (req, res) => {
-//   const { _id } = req.params;
-//   User.findById({ _id })
-//     .orFail(() => {
-//       handleOnFailError();
-//     })
-//     .then((user) => res.send(user))
-//     .catch((err) => {
-//       handleError(err, res);
-//     });
-// };
-
 const getCurrentUser = (req, res) => {
-  const { _id } = req.params;
+  const { _id } = req.user;
 
   User.findById({ _id })
     .orFail(() => {
@@ -44,7 +22,8 @@ const getCurrentUser = (req, res) => {
 };
 
 const updateUser = (req, res) => {
-  const { name, avatar, _id } = req.body;
+  const { name, avatar } = req.body;
+  const { _id } = req.user;
   User.findByIdAndUpdate(
     { _id },
     { name, avatar },
@@ -65,32 +44,33 @@ const updateUser = (req, res) => {
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
-  User.findOne({ email }).then((user, err) => {
-    if (err) {
-      return res.status(500).send({ message: "Server error" });
-    }
-    if (user) {
-      alreadyExistsErr();
-    }
-    return bcrypt.hash(password, 10).then((hash) => {
-      User.create({
-        name,
-        avatar,
-        email,
-        password: hash,
-      })
-        .then((item) =>
-          res.setHeader("Content-Type", "application/json").status(201).send({
-            name: item.name,
-            avatar: item.avatar,
-            email: item.email,
-          })
-        )
-        .catch(() => {
-          handleError(err, res);
-        });
+  User.findOne({ email })
+    .then((user) => {
+      if (user) {
+        alreadyExistsErr();
+      }
+      return bcrypt.hash(password, 10).then((hash) => {
+        User.create({
+          name,
+          avatar,
+          email,
+          password: hash,
+        })
+          .then((item) =>
+            res.setHeader("Content-Type", "application/json").status(201).send({
+              name: item.name,
+              avatar: item.avatar,
+              email: item.email,
+            })
+          )
+          .catch(() => {
+            handleError(err, res);
+          });
+      });
+    })
+    .catch((err) => {
+      handleError(err, res);
     });
-  });
 };
 
 // user log in

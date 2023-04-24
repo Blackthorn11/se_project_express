@@ -3,6 +3,7 @@ const ERROR_CODES = {
   Unauthorized: 401,
   Forbidden: 403,
   NotFound: 404,
+  Conflict: 409,
   DefaultError: 500,
 };
 
@@ -28,6 +29,14 @@ const handleError = (err, res) => {
   }
   if (err.statusCode === 404) {
     res.status(ERROR_CODES.NotFound).send({ message: "Item not found" });
+  } else if (err.statusCode === 409) {
+    res
+      .status(ERROR_CODES.Conflict)
+      .send({ message: "A user with this email already exists" });
+  } else if (err.message === "Incorrect email or password") {
+    res
+      .status(ERROR_CODES.Unauthorized)
+      .send({ message: "Incorrect email or password" });
   } else {
     res
       .status(ERROR_CODES.DefaultError)

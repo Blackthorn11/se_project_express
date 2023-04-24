@@ -40,12 +40,12 @@ const createItem = (req, res) => {
 // delete an item by _id
 
 const deleteItem = (req, res) => {
-  ClothingItem.findById(req.params._id)
+  ClothingItem.findById(req.params.itemId)
     .orFail(() => {
       handleOnFailError();
     })
     .then((item) => {
-      if (String(item.owner) !== req.params._id) {
+      if (String(item.owner) !== req.user._id) {
         return res
           .status(ERROR_CODES.Forbidden)
           .send({ message: "You are not authorized to delete this item" });
