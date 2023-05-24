@@ -2,26 +2,32 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
-const {
-  handleOnFailError,
-  handleError,
-  alreadyExistsErr,
-} = require("../utils/errors");
 
-const getCurrentUser = (req, res) => {
+const badRequestError = require("../utils/errors/badRequestError");
+const unauthorizedError = require("../utils/errors/unauthorizedError");
+const notFoundError = require("../utils/errors/notFoundError");
+const conflictError = require("../utils/errors/conflictError");
+
+const getCurrentUser = (req, res, next) => {
   const { _id } = req.user;
 
   User.findById({ _id })
-    .orFail(() => {
-      handleOnFailError();
+    .then((user) => {
+      if (!user) {
+        next(new notFoundError("User not found"));
+      } else {
+        res.send(user);
+      }
     })
-    .then((user) => res.send(user))
     .catch((err) => {
-      handleError(err, res);
+      if (err.name === "CastError") {
+        next(new badRequestError("Bad request, invalid ID"));
+      }
+      next(err);
     });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, avatar } = req.body;
   const { _id } = req.user;
   User.findByIdAndUpdate(
@@ -29,53 +35,57 @@ const updateUser = (req, res) => {
     { name, avatar },
     { new: true, runValidators: true }
   )
-    .orFail(() => {
-      handleOnFailError();
-    })
     .then((user) => {
       res.send(user);
     })
     .catch((err) => {
-      handleError(err, res);
+      if (err.name === "ValidationError") {
+        next(new badRequestError("Bad request, invalid data"));
+      }
+      next(err);
     });
 };
 
 // create new user (sign up)
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
-  User.findOne({ email })
-    .then((user) => {
-      if (user) {
-        alreadyExistsErr();
-      }
-      return bcrypt.hash(password, 10).then((hash) => {
-        User.create({
-          name,
-          avatar,
-          email,
-          password: hash,
-        })
-          .then((item) =>
-            res.setHeader("Content-Type", "application/json").status(201).send({
-              name: item.name,
-              avatar: item.avatar,
-              email: item.email,
-            })
-          )
-          .catch((err) => {
-            handleError(err, res);
-          });
-      });
+  return bcrypt
+    .hash(password, 10)
+    .then((hash) => {
+      User.create({
+        name,
+        avatar,
+        email,
+        password: hash,
+      })
+        .then((item) =>
+          res.setHeader("Content-Type", "application/json").status(201).send({
+            name: item.name,
+            avatar: item.avatar,
+            email: item.email,
+          })
+        )
+        .catch((err) => {
+          if (err.code === 11000) {
+            next(
+              new conflictError("A user with the current email aleady exists")
+            );
+          }
+          if (err.name === "ValidationError") {
+            next(new badRequestError("Bad request, invalid data input"));
+          }
+          next(err);
+        });
     })
     .catch((err) => {
-      handleError(err, res);
+      next(err);
     });
 };
 
 // user log in
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   User.findUserByCredentials(email, password)
     .then((user) => {
@@ -83,8 +93,8 @@ const login = (req, res) => {
         token: jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "7d" }),
       });
     })
-    .catch((err) => {
-      handleError(err, res);
+    .catch(() => {
+      next(new unauthorizedError("Incorrect email or password"));
     });
 };
 
