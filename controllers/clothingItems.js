@@ -1,7 +1,7 @@
 const ClothingItem = require("../models/clothingItem");
-const badRequestError = require("../utils/errors/badRequestError");
-const forbiddenError = require("../utils/errors/forbiddenError");
-const notFoundError = require("../utils/errors/notFoundError");
+const BadRequestError = require("../utils/errors/badRequestError");
+const ForbiddenError = require("../utils/errors/forbiddenError");
+const NotFoundError = require("../utils/errors/notFoundError");
 
 // return all clothing items
 
@@ -32,9 +32,10 @@ const createItem = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        next(new badRequestError("Bad request, invalid data"));
+        next(new BadRequestError("Bad request, invalid data"));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -44,24 +45,24 @@ const deleteItem = (req, res, next) => {
   ClothingItem.findById(req.params.itemId)
     .then((item) => {
       if (!item) {
-        next(new notFoundError("Item not found"));
+        next(new NotFoundError("Item not found"));
+        return;
       }
       if (item.owner.equals(req.user._id)) {
         item
           .deleteOne()
           .then(() => res.send({ ClothingItem: item }))
-          .catch(() => {
-            next(
-              new forbiddenError("You are not authorized to delete this item")
-            );
-          });
+          .catch(next);
+      } else {
+        next(new ForbiddenError("You are not authorized to delete this item"));
       }
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        next(new badRequestError("Invalid item ID"));
+        next(new BadRequestError("Invalid item ID"));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -75,16 +76,17 @@ const likeItem = (req, res, next) => {
   )
     .then((item) => {
       if (!item) {
-        throw next(new notFoundError("Item not found"));
+        next(new NotFoundError("Item not found"));
       } else {
         res.send({ data: item });
       }
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        next(new badRequestError("Bad request, invalid data ID"));
+        next(new BadRequestError("Bad request, invalid data ID"));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -98,16 +100,17 @@ const dislikeItem = (req, res, next) => {
   )
     .then((item) => {
       if (!item) {
-        throw next(new notFoundError("Item not found"));
+        next(new NotFoundError("Item not found"));
       } else {
         res.send({ data: item });
       }
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        next(new badRequestError("Bad request, invalid data ID"));
+        next(new BadRequestError("Bad request, invalid data ID"));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 

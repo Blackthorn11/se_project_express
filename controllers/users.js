@@ -1,12 +1,15 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../models/user");
-const { JWT_SECRET } = require("../utils/config");
+require("dotenv").config();
 
-const badRequestError = require("../utils/errors/badRequestError");
-const unauthorizedError = require("../utils/errors/unauthorizedError");
-const notFoundError = require("../utils/errors/notFoundError");
-const conflictError = require("../utils/errors/conflictError");
+const { JWT_SECRET } = process.env;
+
+const User = require("../models/user");
+
+const BadRequestError = require("../utils/errors/badRequestError");
+const UnauthorizedError = require("../utils/errors/unauthorizedError");
+const NotFoundError = require("../utils/errors/notFoundError");
+const ConflictError = require("../utils/errors/conflictError");
 
 const getCurrentUser = (req, res, next) => {
   const { _id } = req.user;
@@ -14,16 +17,17 @@ const getCurrentUser = (req, res, next) => {
   User.findById({ _id })
     .then((user) => {
       if (!user) {
-        next(new notFoundError("User not found"));
+        next(new NotFoundError("User not found"));
       } else {
         res.send(user);
       }
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        next(new badRequestError("Bad request, invalid ID"));
+        next(new BadRequestError("Bad request, invalid ID"));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -40,9 +44,10 @@ const updateUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        next(new badRequestError("Bad request, invalid data"));
+        next(new BadRequestError("Bad request, invalid data"));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -69,11 +74,11 @@ const createUser = (req, res, next) => {
         .catch((err) => {
           if (err.code === 11000) {
             next(
-              new conflictError("A user with the current email aleady exists")
+              new ConflictError("A user with the current email aleady exists")
             );
           }
           if (err.name === "ValidationError") {
-            next(new badRequestError("Bad request, invalid data input"));
+            next(new BadRequestError("Bad request, invalid data input"));
           }
           next(err);
         });
@@ -94,7 +99,7 @@ const login = (req, res, next) => {
       });
     })
     .catch(() => {
-      next(new unauthorizedError("Incorrect email or password"));
+      next(new UnauthorizedError("Incorrect email or password"));
     });
 };
 
