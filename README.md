@@ -1,10 +1,12 @@
 # Project 12 & 13
 
+## Domain name:
+
+[WTWR website](https://wtwrweb.mooo.com)
+
 ## Description
 
 In this sprint's project we're building a back-end server for our last What-To-Wear application.
-
-WTWR's front-end: [Link](https://blackthorn11.github.io/se_project_react)
 
 ## Technologies and Techniques Used
 

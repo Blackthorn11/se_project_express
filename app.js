@@ -24,6 +24,12 @@ app.use(requestLogger);
 app.post("/signin", loginValidation, login);
 app.post("/signup", createUserValidation, createUser);
 
+app.get("/crash-test", () => {
+  setTimeout(() => {
+    throw new Error("Server will crash now");
+  }, 0);
+});
+
 app.use(routes);
 app.use(errorLogger);
 app.use(errors());
